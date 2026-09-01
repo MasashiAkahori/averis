@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import {
-    LOCAL_STORAGE_KEY,
+    CreateProjectInput,
     Project,
     ProjectSortOption,
     ProjectStatusFilter
@@ -24,24 +24,30 @@ export default function Home(){
     const [sortOption, setSortOption] = useState<ProjectSortOption>("Name")
 
     useEffect(() => {
-        
-        const data = localStorage.getItem(LOCAL_STORAGE_KEY)
-
-        if (data) {
-            const savedProject: Project[] = JSON.parse(data);
-            setProjects(savedProject);
+        async function fetchProjects() {
+            const response = await fetch("/api/projects");
+            const data: Project[] = await response.json();
+            setProjects(data)
         }
+
+        fetchProjects()
     }, [])
 
-    useEffect(() => {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(projects))
-    }, [projects])
+    async function addProject(input: CreateProjectInput) {
+        const response = await fetch("/api/projects", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(input)
+        });
 
-    function addProject(project: Project) {
+        const createdProject: Project = await response.json();
+
         setProjects(prev => [
             ...prev,
-            project
-        ])
+            createdProject
+        ]);
     }
 
     function handleEdit(project: Project) {

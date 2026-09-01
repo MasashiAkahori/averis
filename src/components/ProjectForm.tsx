@@ -1,10 +1,10 @@
-"use Client"
+"use client"
 
 import { useState, SubmitEvent, useEffect } from "react"
-import { Project, ProjectStatus, PROJECT_STATUS } from "@/types/project"
+import { Project, ProjectStatus, PROJECT_STATUS, CreateProjectInput } from "@/types/project"
 
 type ProjectFormProps = {
-    onAdd: (project: Project) => void;
+    onAdd: (project: CreateProjectInput) => void;
     onUpdate: (project: Project) => void;
     editingProject: Project | null;
 }
@@ -39,9 +39,7 @@ export function ProjectForm({
                 time: "Just Now"
             })
         } else {
-            const id = crypto.randomUUID();
             onAdd({
-                id,
                 name,
                 status,
                 time: "Just Now"

@@ -38,4 +38,8 @@ export const FILTER_STATUS = [
     "All"
 ] as const;
 
-export const LOCAL_STORAGE_KEY = "projects"
+export type CreateProjectInput = {
+    name: string
+    status: ProjectStatus
+    time: string
+}
