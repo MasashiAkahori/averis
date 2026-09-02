@@ -54,8 +54,18 @@ export default function Home(){
         setEditingProject(project)
     }
 
-    function updateProject(updatedProject: Project) {
-        setProjects(prev => 
+    async function updateProject(input: Project) {
+        const { id, ...projectInfo } = input
+        const response = await fetch(`/api/projects/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(projectInfo)
+        })
+
+        const updatedProject: Project = await response.json() 
+        setProjects(prev =>
             prev.map(project =>
                 project.id === updatedProject.id ? updatedProject : project
             )
