@@ -30,3 +30,28 @@ export async function PUT(
         { status: 200 }
     )
 }
+
+export async function DELETE(
+    _request: Request,
+    { params }: { params: Promise<{ id: string }>}
+) {
+    const { id } = await params
+    const index = projects.findIndex(
+        project => project.id === id
+    )
+
+    if (index === -1) {
+        return Response.json(
+            { message: "Project not found" },
+            { status: 404 }
+        )
+    }
+
+    const deletedProject = projects[index]
+    projects.splice(index, 1)
+
+    return Response.json(
+        deletedProject,
+        { status: 200 }
+    )
+}

@@ -73,8 +73,13 @@ export default function Home(){
         setEditingProject(null)
     }
 
-    function deleteProject(id: string) {
-        setProjects(prev => prev.filter((project) => project.id !== id))
+    async function deleteProject(id: string) {
+        const response = await fetch(`/api/projects/${id}`, {
+            method: "DELETE"
+        })
+
+        const deletedProject: Project = await response.json()
+        setProjects(prev => prev.filter((project) => project.id !== deletedProject.id))
     }
 
     return (
