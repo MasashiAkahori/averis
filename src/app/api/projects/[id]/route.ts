@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { CreateProjectInput, Project } from "@/types/project";
@@ -6,6 +7,15 @@ export async function PUT(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const session = await auth()
+
+    if (!session) {
+        return Response.json(
+            { message: "Unauthorized"},
+            { status: 401 }
+        )
+    }
+
     const { id } = await params
 
     const input: CreateProjectInput = await request.json()
@@ -40,6 +50,15 @@ export async function DELETE(
     _request: Request,
     { params }: { params: Promise<{ id: string }>}
 ) {
+    const session = await auth()
+
+    if (!session) {
+        return Response.json(
+            { message: "Unauthorized"},
+            { status: 401 }
+        )
+    }
+
     const { id } = await params
 
     try {
