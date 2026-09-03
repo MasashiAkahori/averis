@@ -1,5 +1,5 @@
 import { Project } from "@/types/project"
-import { StatusBadge } from "./ StatusBadge"
+import { StatusBadge } from "./StatusBadge"
 
 type ProjectRowProps = {
     project: Project
