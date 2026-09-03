@@ -1,34 +1,39 @@
-import { projects } from "@/data/projects";
+import { Prisma } from "@/generated/prisma/client";
+import prisma from "@/lib/prisma";
 import { CreateProjectInput, Project } from "@/types/project";
 
 export async function PUT(
     request: Request,
-    { params }: { params: Promise<{ id: string }>}
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
-    const index = projects.findIndex(
-        project => project.id === id
-    )
+
     const input: CreateProjectInput = await request.json()
 
-    if (index === -1) {
-        return Response.json(
-            { message: "Project not found" },
-            { status: 404 }
-        )
+    try {
+        const updatedProject = await prisma.project.update({
+            where: {
+                id: id
+            },
+            data: input
+        })
+
+        return Response.json(updatedProject, {
+            status: 200
+        })
+    } catch (error) {
+        if (
+            error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === "P2025"
+        ) {
+            return Response.json(
+                { message: "Project not found" },
+                { status: 404 }
+            )
+        }
+
+        throw error;
     }
-
-    const updateProject: Project = {
-        id,
-        ...input
-    }
-
-    projects[index] = updateProject
-
-    return Response.json(
-        updateProject,
-        { status: 200 }
-    )
 }
 
 export async function DELETE(
@@ -36,22 +41,28 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }>}
 ) {
     const { id } = await params
-    const index = projects.findIndex(
-        project => project.id === id
-    )
 
-    if (index === -1) {
-        return Response.json(
-            { message: "Project not found" },
-            { status: 404 }
-        )
+    try {
+        const deletedProject = await prisma.project.delete({
+            where: {
+                id: id
+            }
+        })
+
+        return Response.json(deletedProject, {
+            status: 200
+        })
+    } catch (error) {
+        if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === "P2025"
+        ) {
+            return Response.json(
+                { message: "Project not found" },
+                { status: 404 }
+            )
+        }
+
+        throw error;
     }
-
-    const deletedProject = projects[index]
-    projects.splice(index, 1)
-
-    return Response.json(
-        deletedProject,
-        { status: 200 }
-    )
 }
