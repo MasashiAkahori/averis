@@ -6,6 +6,7 @@ export const PROJECT_STATUS = [
 ] as const;
 
 export const PROJECT_SORT_OPTION = [
+    "Created Date",
     "Name",
     "Status"
 ] as const;

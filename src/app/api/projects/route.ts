@@ -13,12 +13,34 @@ export async function GET() {
         )
     }
 
+    if (!session.user?.email) {
+        return Response.json(
+            { message: "Authenticated user email is unavailable" },
+            { status: 401 }
+        )
+    }
+
+    const user = await prisma.user.findUnique({
+        where: {
+            email: session.user.email
+        }
+    })
+
+    if (!user) {
+        return Response.json(
+            { message: "User not found" },
+            { status: 404 }
+        )
+    }
+
     const projects = await prisma.project.findMany({
+        where: {
+            userId: user.id
+        },
         orderBy: {
             createdAt: "desc"
         }
-    }
-    )
+    })
 
     return Response.json(projects)
 }

@@ -50,6 +50,11 @@ export function ProjectList({
     const sortedProjects = [...filteredProjects]
     .sort((a, b) => {
         switch (sortOption) {
+            case "Created Date":
+                return (
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
+                );
             case "Status":
                 return STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
             case "Name":

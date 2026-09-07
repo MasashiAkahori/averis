@@ -21,7 +21,7 @@ export default function Dashboard() {
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [searchText, setSearchText] = useState<string>("");
     const [statusFilter, setStatusFilter] = useState<ProjectStatusFilter>("All");
-    const [sortOption, setSortOption] = useState<ProjectSortOption>("Name")
+    const [sortOption, setSortOption] = useState<ProjectSortOption>("Created Date")
 
     useEffect(() => {
         async function fetchProjects() {
@@ -45,8 +45,8 @@ export default function Dashboard() {
         const createdProject: Project = await response.json();
 
         setProjects(prev => [
-            ...prev,
-            createdProject
+            createdProject,
+            ...prev
         ]);
     }
 
