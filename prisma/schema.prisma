@@ -13,10 +13,14 @@ datasource db {
 }
 
 model Project {
-  id     String @id @default(uuid())
-  name   String
-  status String
-  time   String
+  id        String   @id @default(uuid())
+  name      String
+  status    String
+  time      String
+  createdAt DateTime @default(now())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -28,6 +32,7 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  projects Project[]
 }
 
 model Account {

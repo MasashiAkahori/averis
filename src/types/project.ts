@@ -26,6 +26,8 @@ export type Project = {
     name: string
     status: ProjectStatus
     time: string
+    createdAt: string
+    userId: string | null
 }
 
 export type ProjectStatusFilter = "All" | ProjectStatus
