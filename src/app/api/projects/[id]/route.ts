@@ -15,26 +15,6 @@ export async function PUT(
         )
     }
 
-    if (!session.user?.email) {
-        return Response.json(
-            { message: "Authenticated user email is unavailable" },
-            { status: 401 }
-        )
-    }
-
-    const user = await prisma.user.findUnique({
-        where: {
-            email: session.user.email
-        }
-    })
-
-    if (!user) {
-        return Response.json(
-            { message: "User not found" },
-            { status: 404 }
-        )
-    }
-
     const { id } = await params
 
     const input: CreateProjectInput = await request.json()
@@ -42,7 +22,7 @@ export async function PUT(
     const project = await prisma.project.findFirst({
         where: {
             id: id,
-            userId: user.id
+            userId: session.user.id
         }
     })
 
@@ -71,33 +51,10 @@ export async function DELETE(
 ) {
     const session = await auth()
 
-    // 1. auth()でSession確認
     if (!session) {
         return Response.json(
             { message: "Unauthorized"},
             { status: 401 }
-        )
-    }
-
-    // 2. session.user.emailがあるか確認
-    if (!session.user?.email) {
-        return Response.json(
-            { message: "Authenticated user email is unavailable" },
-            { status: 401 }
-        )
-    }
-
-    // 3. emailでUser取得
-    const user = await prisma.user.findUnique({
-        where: {
-            email: session.user.email
-        }
-    })
-
-    if (!user) {
-        return Response.json(
-            { message: "User not found" },
-            { status: 404 }
         )
     }
 
@@ -108,7 +65,7 @@ export async function DELETE(
     const project = await prisma.project.findFirst({
             where: {
                 id: id,
-                userId: user.id
+                userId: session.user.id
             }
     })
 

@@ -5,5 +5,11 @@ import prisma from "@/lib/prisma"
 
 export const { auth, handlers } = NextAuth({
     adapter: PrismaAdapter(prisma),
-    providers: [GitHub]
+    providers: [GitHub],
+    callbacks: {
+        session({ session, user }) {
+            session.user.id = user.id
+            return session
+        }
+    }
 })
