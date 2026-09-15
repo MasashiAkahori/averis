@@ -42,6 +42,10 @@ export default function Dashboard() {
             body: JSON.stringify(input)
         });
 
+        if (!response.ok) {
+            return;
+        }
+
         const createdProject: Project = await response.json();
 
         setProjects(prev => [

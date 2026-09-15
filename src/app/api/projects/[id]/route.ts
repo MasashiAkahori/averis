@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
-import { CreateProjectInput } from "@/types/project";
+import { CreateProjectSchema } from "@/schemas/project";
 
 export async function PUT(
     request: Request,
@@ -17,7 +17,16 @@ export async function PUT(
 
     const { id } = await params
 
-    const input: CreateProjectInput = await request.json()
+    const body = await request.json()
+
+    const result = CreateProjectSchema.safeParse(body)
+
+    if (!result.success) {
+        return Response.json(
+            { message: "Invalid request" },
+            { status: 400 }
+        )
+    }
 
     const project = await prisma.project.findFirst({
         where: {
@@ -37,7 +46,7 @@ export async function PUT(
         where: {
             id: id
         },
-        data: input
+        data: result.data
     })
 
     return Response.json(updatedProject, {

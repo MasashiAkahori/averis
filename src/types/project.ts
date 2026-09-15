@@ -1,3 +1,10 @@
+import { z } from "zod"
+import { ProjectStatusSchema, CreateProjectSchema } from "@/schemas/project"
+
+export type ProjectStatus = z.infer<typeof ProjectStatusSchema>
+
+export type CreateProjectInput = z.infer<typeof CreateProjectSchema>
+
 export const PROJECT_STATUS = [
     "Healthy",
     "Failed",
@@ -20,8 +27,6 @@ export const STATUS_ORDER = {
     Failed: 3
 }
 
-export type ProjectStatus = typeof PROJECT_STATUS[number];
-
 export type Project = {
     id: string
     name: string
@@ -40,9 +45,3 @@ export const FILTER_STATUS = [
     "Paused",
     "All"
 ] as const;
-
-export type CreateProjectInput = {
-    name: string
-    status: ProjectStatus
-    time: string
-}
