@@ -41,7 +41,10 @@ export async function POST(request: Request) {
 
     if (!result.success) {
         return Response.json(
-            { message: "Invalid request" },
+            {
+                message: "Invalid request",
+                errors: result.error.issues
+            },
             { status: 400 }
         )
     }

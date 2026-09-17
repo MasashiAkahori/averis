@@ -14,6 +14,7 @@ import { ProjectForm } from "@/components/ProjectForm"
 import { SearchBar } from "@/components/SearchBar"
 import { StatusFilter } from "@/components/StatusFilter"
 import { SortFilter } from "@/components/SortFilter"
+import { ZodIssue } from "zod"
 
 export default function Dashboard() {
     const [showSidebar, setShowSidebar] = useState(true)
@@ -22,6 +23,7 @@ export default function Dashboard() {
     const [searchText, setSearchText] = useState<string>("");
     const [statusFilter, setStatusFilter] = useState<ProjectStatusFilter>("All");
     const [sortOption, setSortOption] = useState<ProjectSortOption>("Created Date")
+    const [errors, setErrors] = useState<ZodIssue[]>([])
 
     useEffect(() => {
         async function fetchProjects() {
@@ -43,6 +45,9 @@ export default function Dashboard() {
         });
 
         if (!response.ok) {
+            const errorResponse = await response.json()
+            setErrors(errorResponse.errors)
+
             return;
         }
 
