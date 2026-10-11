@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import {
     CreateProjectInput,
+    FieldError,
     Project,
     ProjectSortOption,
     ProjectStatusFilter
@@ -14,7 +15,6 @@ import { ProjectForm } from "@/components/ProjectForm"
 import { SearchBar } from "@/components/SearchBar"
 import { StatusFilter } from "@/components/StatusFilter"
 import { SortFilter } from "@/components/SortFilter"
-import { ZodIssue } from "zod"
 
 export default function Dashboard() {
     const [showSidebar, setShowSidebar] = useState(true)
@@ -23,7 +23,7 @@ export default function Dashboard() {
     const [searchText, setSearchText] = useState<string>("");
     const [statusFilter, setStatusFilter] = useState<ProjectStatusFilter>("All");
     const [sortOption, setSortOption] = useState<ProjectSortOption>("Created Date")
-    const [errors, setErrors] = useState<ZodIssue[]>([])
+    const [errors, setErrors] = useState<FieldError[]>([])
 
     useEffect(() => {
         async function fetchProjects() {
@@ -35,7 +35,7 @@ export default function Dashboard() {
         fetchProjects()
     }, [])
 
-    async function addProject(input: CreateProjectInput) {
+    async function addProject(input: CreateProjectInput): Promise<boolean> {
         const response = await fetch("/api/projects", {
             method: "POST",
             headers: {
@@ -48,7 +48,7 @@ export default function Dashboard() {
             const errorResponse = await response.json()
             setErrors(errorResponse.errors)
 
-            return;
+            return false;
         }
 
         const createdProject: Project = await response.json();
@@ -57,13 +57,16 @@ export default function Dashboard() {
             createdProject,
             ...prev
         ]);
+
+        setErrors([]);
+        return true;
     }
 
-    function handleEdit(project: Project) {
+    async function handleEdit(project: Project) {
         setEditingProject(project)
     }
 
-    async function updateProject(input: Project) {
+    async function updateProject(input: Project): Promise<boolean> {
         const { id, ...projectInfo } = input
         const response = await fetch(`/api/projects/${id}`, {
             method: "PUT",
@@ -73,13 +76,22 @@ export default function Dashboard() {
             body: JSON.stringify(projectInfo)
         })
 
-        const updatedProject: Project = await response.json() 
+        if (!response.ok) {
+            const errorResponse = await response.json();
+            setErrors(errorResponse.errors ?? []);
+            return false;
+        }
+
+        const updatedProject: Project = await response.json()
+
         setProjects(prev =>
             prev.map(project =>
                 project.id === updatedProject.id ? updatedProject : project
             )
         )
-        setEditingProject(null)
+        setEditingProject(null);
+        setErrors([]);
+        return true;
     }
 
     async function deleteProject(id: string) {
@@ -146,7 +158,9 @@ export default function Dashboard() {
                 <ProjectForm
                     editingProject={editingProject}
                     onAdd={addProject}
+                    onClearErrors={() => setErrors([])}
                     onUpdate={updateProject}
+                    errors={errors}
                 />
             </section>
         </main>

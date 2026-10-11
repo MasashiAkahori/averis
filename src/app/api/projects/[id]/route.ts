@@ -22,8 +22,13 @@ export async function PUT(
     const result = CreateProjectSchema.safeParse(body)
 
     if (!result.success) {
+        const errors = result.error.issues.map(issue => ({
+            field: String(issue.path[0]),
+            message: issue.message
+        }))
+
         return Response.json(
-            { message: "Invalid request" },
+            { message: "Invalid request", errors },
             { status: 400 }
         )
     }

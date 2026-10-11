@@ -1,21 +1,27 @@
 "use client"
 
 import { useState, SubmitEvent, useEffect } from "react"
-import { Project, ProjectStatus, PROJECT_STATUS, CreateProjectInput } from "@/types/project"
+import { Project, ProjectStatus, PROJECT_STATUS, CreateProjectInput, FieldError } from "@/types/project"
 
 type ProjectFormProps = {
-    onAdd: (project: CreateProjectInput) => void;
-    onUpdate: (project: Project) => void;
+    onAdd: (project: CreateProjectInput) => Promise<boolean>;
+    onUpdate: (project: Project) => Promise<boolean>;
+    onClearErrors: () => void;
     editingProject: Project | null;
+    errors: FieldError[]
 }
 
 export function ProjectForm({
     onAdd,
     onUpdate,
-    editingProject
+    onClearErrors,
+    editingProject,
+    errors
 }: ProjectFormProps) {
     const [name, setName] = useState("")
     const [status, setStatus] = useState<ProjectStatus>("Building")
+
+    const nameError = errors.find(error => error.field === "name")
 
     useEffect(() => {
         if (editingProject) {
@@ -27,26 +33,34 @@ export function ProjectForm({
         }
     }, [editingProject]);
 
-    function handleSubmit(
+    async function handleSubmit(
         e: SubmitEvent
     ) {
         e.preventDefault()
+
+        let succeeded: boolean;
+
         if (editingProject) {
-            onUpdate({
+            succeeded = await onUpdate({
                 id: editingProject.id,
                 name,
                 status,
-                time: "Just Now"
+                time: "Just Now",
+                createdAt: editingProject.createdAt,
+                userId: editingProject.userId
             })
         } else {
-            onAdd({
+            succeeded = await onAdd({
                 name,
                 status,
                 time: "Just Now"
             })
         }
-        setName("")
-        setStatus("Building")
+
+        if (succeeded) {
+            setName("")
+            setStatus("Building")
+        }
     }
 
     return (
@@ -56,12 +70,18 @@ export function ProjectForm({
         >
             <input
                 value={name}
-                onChange={
-                    e => setName(e.target.value)
-                }
+                onChange={e => {
+                    setName(e.target.value);
+                    onClearErrors();
+                }}
                 placeholder="Project Name"
                 className="border p-2"
             />
+
+            {nameError && (
+                <p>{nameError.message}</p>
+            )}
+
             <select
                 value={status}
                 onChange={
@@ -76,7 +96,7 @@ export function ProjectForm({
             <button
                 className="border p-2 ml-2"
             >
-                Add
+                {editingProject ? "Update" : "Add"}
             </button>
         </form>
     )

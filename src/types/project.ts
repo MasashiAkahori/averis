@@ -45,3 +45,8 @@ export const FILTER_STATUS = [
     "Paused",
     "All"
 ] as const;
+
+export type FieldError = {
+    field: string
+    message: string
+}
