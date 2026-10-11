@@ -9,6 +9,7 @@ type ProjectFormProps = {
     onClearErrors: () => void;
     editingProject: Project | null;
     errors: FieldError[]
+    errorMessage: string | null
 }
 
 export function ProjectForm({
@@ -16,7 +17,8 @@ export function ProjectForm({
     onUpdate,
     onClearErrors,
     editingProject,
-    errors
+    errors,
+    errorMessage
 }: ProjectFormProps) {
     const [name, setName] = useState("")
     const [status, setStatus] = useState<ProjectStatus>("Building")
@@ -70,44 +72,52 @@ export function ProjectForm({
     }
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="border p-4 sounded mt-8"
-        >
-            <input
-                value={name}
-                onChange={e => {
-                    setName(e.target.value);
-                    onClearErrors();
-                }}
-                placeholder="Project Name"
-                className="border p-2"
-            />
-
-            {nameError && (
-                <p>{nameError.message}</p>
+        <>
+            {errorMessage && (
+                <p role="alert">
+                    {errorMessage}
+                </p>
             )}
 
-            <select
-                value={status}
-                onChange={
-                    (e) => setStatus(e.target.value as ProjectStatus)
-                }
+            <form
+                onSubmit={handleSubmit}
+                className="border p-4 sounded mt-8"
             >
-                {PROJECT_STATUS.map((status) => (
-                    <option key={status} value={status}>{status}</option>
-                ))}
-            </select>
+                <input
+                    value={name}
+                    onChange={e => {
+                        setName(e.target.value);
+                        onClearErrors();
+                    }}
+                    placeholder="Project Name"
+                    className="border p-2"
+                />
 
-            <button
-                disabled={isSubmitting}
-                className="border p-2 ml-2"
-            >
-                {isSubmitting
-                    ? (editingProject ? "Updatng..." : "Adding")
-                    : (editingProject ? "Update" : "Add")
-                }
-            </button>
-        </form>
+                {nameError && (
+                    <p>{nameError.message}</p>
+                )}
+
+                <select
+                    value={status}
+                    onChange={
+                        (e) => setStatus(e.target.value as ProjectStatus)
+                    }
+                >
+                    {PROJECT_STATUS.map((status) => (
+                        <option key={status} value={status}>{status}</option>
+                    ))}
+                </select>
+
+                <button
+                    disabled={isSubmitting}
+                    className="border p-2 ml-2"
+                >
+                    {isSubmitting
+                        ? (editingProject ? "Updating..." : "Adding")
+                        : (editingProject ? "Update" : "Add")
+                    }
+                </button>
+            </form>
+        </>
     )
 }

@@ -4,60 +4,83 @@ import { auth } from "@/auth";
 
 
 export async function GET() {
-    const session = await auth()
+    try {
+        const session = await auth()
 
-    if (!session) {
+        if (!session) {
+            return Response.json(
+                { message: "Unauthorized"},
+                { status: 401 }
+            )
+        }
+
+        const projects = await prisma.project.findMany({
+            where: {
+                userId: session.user.id
+            },
+            orderBy: {
+                createdAt: "desc"
+            }
+        })
+
+        return Response.json(projects)
+    } catch {
         return Response.json(
-            { message: "Unauthorized"},
-            { status: 401 }
+            { message: "Internal server error" },
+            { status: 500 }
         )
     }
-
-    const projects = await prisma.project.findMany({
-        where: {
-            userId: session.user.id
-        },
-        orderBy: {
-            createdAt: "desc"
-        }
-    })
-
-    return Response.json(projects)
 }
 
 export async function POST(request: Request) {
-    const session = await auth()
+    try {
+        const session = await auth()
 
-    if (!session) {
-        return Response.json(
-            { message: "Unauthorized"},
-            { status: 401 }
-        )
-    }
-
-    const body = await request.json()
-
-    const result = CreateProjectSchema.safeParse(body)
-
-    if (!result.success) {
-        const errors = result.error.issues.map(issue => ({
-            field: String(issue.path[0]),
-            message: issue.message
-        }))
-        return Response.json(
-            { message: "Invalid request", errors },
-            { status: 400 }
-        )
-    }
-
-    const createdProject = await prisma.project.create({
-        data: {
-            ...result.data,
-            userId: session.user.id
+        if (!session) {
+            return Response.json(
+                { message: "Unauthorized"},
+                { status: 401 }
+            )
         }
-    })
 
-    return Response.json(createdProject, {
-        status: 201
-    });
+        let body;
+
+        try {
+            body = await request.json()
+        } catch {
+            return Response.json(
+                { message: "Invalid JSON."},
+                { status: 400}
+            );
+        }
+
+        const result = CreateProjectSchema.safeParse(body)
+
+        if (!result.success) {
+            const errors = result.error.issues.map(issue => ({
+                field: String(issue.path[0]),
+                message: issue.message
+            }))
+            return Response.json(
+                { message: "Invalid request", errors },
+                { status: 400 }
+            )
+        }
+
+        const createdProject = await prisma.project.create({
+            data: {
+                ...result.data,
+                userId: session.user.id
+            }
+        })
+
+        return Response.json(createdProject, {
+            status: 201
+        });
+    } catch {
+        return Response.json(
+            { message: "Internal server error" },
+            { status: 500 }
+        )
+    }
 }

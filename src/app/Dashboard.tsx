@@ -17,49 +17,77 @@ import { StatusFilter } from "@/components/StatusFilter"
 import { SortFilter } from "@/components/SortFilter"
 
 export default function Dashboard() {
-    const [showSidebar, setShowSidebar] = useState(true)
-    const [projects, setProjects] = useState<Project[]>([])
+    const [showSidebar, setShowSidebar] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
+    const [projects, setProjects] = useState<Project[]>([]);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [searchText, setSearchText] = useState<string>("");
     const [statusFilter, setStatusFilter] = useState<ProjectStatusFilter>("All");
     const [sortOption, setSortOption] = useState<ProjectSortOption>("Created Date");
     const [errors, setErrors] = useState<FieldError[]>([]);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchProjects() {
-            const response = await fetch("/api/projects");
-            const data: Project[] = await response.json();
-            setProjects(data)
+            try {
+                const response = await fetch("/api/projects");
+                if (!response.ok) {
+                    throw new Error("Failed to fetch projects.");
+                }
+
+                const data: Project[] = await response.json();
+                setProjects(data);
+            } catch {
+                setErrorMessage(
+                    "Could not load projects. Please try again later."
+                );
+            } finally {
+                setIsLoading(false);
+            }
         }
 
         fetchProjects()
     }, [])
 
     async function addProject(input: CreateProjectInput): Promise<boolean> {
-        const response = await fetch("/api/projects", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(input)
-        });
+        try {
+            setErrors([]);
+            setErrorMessage(null);
+            const response = await fetch("/api/projects", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(input)
+            });
 
-        if (!response.ok) {
-            const errorResponse = await response.json()
-            setErrors(errorResponse.errors)
+            if (!response.ok) {
+                const errorResponse = await response.json()
+                if (response.status === 400 && errorResponse.errors) {
+                    setErrors(errorResponse.errors);
+                } else {
+                    setErrors([]);
+                    setErrorMessage(
+                        "Could not add the project. Please try again later."
+                    );
+                }
+                return false;
+            }
 
+            const createdProject: Project = await response.json();
+
+            setProjects(prev => [
+                createdProject,
+                ...prev
+            ]);
+
+            setErrors([]);
+            setErrorMessage(null);
+            return true;
+        } catch (error) {
+            setErrorMessage("Could not add the project. Check your internet connection.");
             return false;
         }
-
-        const createdProject: Project = await response.json();
-
-        setProjects(prev => [
-            createdProject,
-            ...prev
-        ]);
-
-        setErrors([]);
-        return true;
     }
 
     async function handleEdit(project: Project) {
@@ -68,39 +96,71 @@ export default function Dashboard() {
 
     async function updateProject(input: Project): Promise<boolean> {
         const { id, ...projectInfo } = input
-        const response = await fetch(`/api/projects/${id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(projectInfo)
-        })
+        try {
+            setErrors([]);
+            setErrorMessage(null);
+            const response = await fetch(`/api/projects/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(projectInfo)
+            })
 
-        if (!response.ok) {
-            const errorResponse = await response.json();
-            setErrors(errorResponse.errors ?? []);
+            if (!response.ok) {
+                const errorResponse = await response.json()
+                if (response.status === 400 && errorResponse.errors) {
+                    setErrors(errorResponse.errors);
+                } else {
+                    setErrors([]);
+                    setErrorMessage(
+                        "Could not update the project. Please try again later."
+                    );
+                }
+                return false;
+            }
+
+            const updatedProject: Project = await response.json()
+
+            setProjects(prev =>
+                prev.map(project =>
+                    project.id === updatedProject.id ? updatedProject : project
+                )
+            )
+            setEditingProject(null);
+            setErrors([]);
+            setErrorMessage(null);
+            return true;
+        } catch (error) {
+            setErrorMessage("Could not edit the project. Check your internet connection.");
             return false;
         }
-
-        const updatedProject: Project = await response.json()
-
-        setProjects(prev =>
-            prev.map(project =>
-                project.id === updatedProject.id ? updatedProject : project
-            )
-        )
-        setEditingProject(null);
-        setErrors([]);
-        return true;
     }
 
-    async function deleteProject(id: string) {
-        const response = await fetch(`/api/projects/${id}`, {
-            method: "DELETE"
-        })
+    async function deleteProject(id: string): Promise<boolean> {
+        try {
+            const response = await fetch(`/api/projects/${id}`, {
+                method: "DELETE"
+            })
 
-        const deletedProject: Project = await response.json()
-        setProjects(prev => prev.filter((project) => project.id !== deletedProject.id))
+            if (!response.ok) {
+                setErrors([]);
+                setErrorMessage(
+                    "Could not delete the project. Please try again later."
+                );
+                return false;
+            }
+
+            const deletedProject: Project = await response.json()
+            setProjects(prev => prev.filter((project) => project.id !== deletedProject.id))
+
+            setErrors([]);
+            setErrorMessage(null);
+            return true;
+        } catch {
+            setErrorMessage("Could not delete the project. Check your internet connection.");
+            return false;
+        }
     }
 
     return (
@@ -116,6 +176,12 @@ export default function Dashboard() {
                 <h1 className="text-3xl font-bold">
                     Engineering Dashboard
                 </h1>
+
+                {errorMessage && (
+                    <p className="mt-4 text-red-600">
+                        {errorMessage}
+                    </p>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                     <MetricCard
@@ -147,20 +213,27 @@ export default function Dashboard() {
                         onOptionChange={setSortOption}
                     />
                 </div>
-                <ProjectList
-                    projects={projects}
-                    onDelete={deleteProject}
-                    onEdit={handleEdit}
-                    searchText={searchText}
-                    statusFilter={statusFilter}
-                    sortOption={sortOption}
-                />
+
+                {isLoading ? (
+                    <p>Loading projects...</p>
+                ) : (
+                    <ProjectList
+                        projects={projects}
+                        onDelete={deleteProject}
+                        onEdit={handleEdit}
+                        searchText={searchText}
+                        statusFilter={statusFilter}
+                        sortOption={sortOption}
+                    />
+                )}
+
                 <ProjectForm
                     editingProject={editingProject}
                     onAdd={addProject}
                     onClearErrors={() => setErrors([])}
                     onUpdate={updateProject}
                     errors={errors}
+                    errorMessage={errorMessage}
                 />
             </section>
         </main>
