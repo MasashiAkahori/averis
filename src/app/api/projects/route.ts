@@ -40,11 +40,12 @@ export async function POST(request: Request) {
     const result = CreateProjectSchema.safeParse(body)
 
     if (!result.success) {
+        const errors = result.error.issues.map(issue => ({
+            field: String(issue.path[0]),
+            message: issue.message
+        }))
         return Response.json(
-            {
-                message: "Invalid request",
-                errors: result.error.issues
-            },
+            { message: "Invalid request", errors },
             { status: 400 }
         )
     }
