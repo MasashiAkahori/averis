@@ -20,6 +20,7 @@ export function ProjectForm({
 }: ProjectFormProps) {
     const [name, setName] = useState("")
     const [status, setStatus] = useState<ProjectStatus>("Building")
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const nameError = errors.find(error => error.field === "name")
 
@@ -37,29 +38,34 @@ export function ProjectForm({
         e: SubmitEvent
     ) {
         e.preventDefault()
+        setIsSubmitting(true)
 
         let succeeded: boolean;
 
-        if (editingProject) {
-            succeeded = await onUpdate({
-                id: editingProject.id,
-                name,
-                status,
-                time: "Just Now",
-                createdAt: editingProject.createdAt,
-                userId: editingProject.userId
-            })
-        } else {
-            succeeded = await onAdd({
-                name,
-                status,
-                time: "Just Now"
-            })
-        }
+        try {
+            if (editingProject) {
+                succeeded = await onUpdate({
+                    id: editingProject.id,
+                    name,
+                    status,
+                    time: "Just Now",
+                    createdAt: editingProject.createdAt,
+                    userId: editingProject.userId
+                })
+            } else {
+                succeeded = await onAdd({
+                    name,
+                    status,
+                    time: "Just Now"
+                })
+            }
 
-        if (succeeded) {
-            setName("")
-            setStatus("Building")
+            if (succeeded) {
+                setName("")
+                setStatus("Building")
+            }
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
@@ -94,9 +100,13 @@ export function ProjectForm({
             </select>
 
             <button
+                disabled={isSubmitting}
                 className="border p-2 ml-2"
             >
-                {editingProject ? "Update" : "Add"}
+                {isSubmitting
+                    ? (editingProject ? "Updatng..." : "Adding")
+                    : (editingProject ? "Update" : "Add")
+                }
             </button>
         </form>
     )

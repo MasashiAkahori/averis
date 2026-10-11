@@ -22,8 +22,8 @@ export default function Dashboard() {
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [searchText, setSearchText] = useState<string>("");
     const [statusFilter, setStatusFilter] = useState<ProjectStatusFilter>("All");
-    const [sortOption, setSortOption] = useState<ProjectSortOption>("Created Date")
-    const [errors, setErrors] = useState<FieldError[]>([])
+    const [sortOption, setSortOption] = useState<ProjectSortOption>("Created Date");
+    const [errors, setErrors] = useState<FieldError[]>([]);
 
     useEffect(() => {
         async function fetchProjects() {
