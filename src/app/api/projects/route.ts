@@ -2,7 +2,6 @@ import { CreateProjectSchema } from "@/schemas/project"
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 
-
 export async function GET() {
     try {
         const session = await auth()

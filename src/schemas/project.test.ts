@@ -26,7 +26,7 @@ it("rejects an empty project name", () => {
 it("rejects an invalid project status", () => {
     const result = CreateProjectSchema.safeParse({
         name: "Averis",
-        status: "Pending",
+        status: "Unknown",
         time: "10 hours",
     });
 
