@@ -1,5 +1,6 @@
 import { beforeEach, it, expect, vi } from "vitest"
-import { GET } from "./route";
+import { GET, POST } from "./route";
+import { Project } from "@/types/project";
 
 beforeEach(() => {
     vi.clearAllMocks()
@@ -17,45 +18,42 @@ const { mockFindMany } = vi.hoisted(() => ({
     mockFindMany: vi.fn(),
 }));
 
+const { mockCreate } = vi.hoisted(() => ({
+    mockCreate: vi.fn(),
+}))
+
 vi.mock("@/lib/prisma", () => ({
     default: {
         project: {
-            findMany: mockFindMany
+            findMany: mockFindMany,
+            create: mockCreate
         }
     }
 }));
 
+// GET
 it("function GET returns 200", async () => {
+    const userId: string = "user_1"
+    const mockProject: Project = {
+        id: "project_1",
+        name: "project_1",
+        status: "Healthy",
+        time: "10 hours",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        userId: userId,
+    }
     mockAuth.mockResolvedValue({
         user: {
             id: "user_1"
         }
     });
-    mockFindMany.mockResolvedValue([
-        {
-            status: "Healthy",
-            id: "project_1",
-            name: "project_1",
-            time: "10 hours",
-            createdAt: "Date",
-            userId: "user_1",
-        }
-    ]);
+    mockFindMany.mockResolvedValue([mockProject]);
     const response = await GET();
     const body = await response.json();
     expect(response.status).toBe(200);
-    expect(body).toStrictEqual([
-        {
-            "createdAt": "Date",
-            "id": "project_1",
-            "name": "project_1",
-            "status": "Healthy",
-            "time": "10 hours",
-            "userId": "user_1",
-        },
-    ])
+    expect(body).toStrictEqual([mockProject])
     expect(mockFindMany).toHaveBeenCalledWith({
-        where: { userId: "user_1" },
+        where: { userId: userId },
         orderBy: { createdAt: "desc" },
     });
 })
@@ -70,3 +68,44 @@ it("function GET returns 401", async () => {
     });
     expect(mockFindMany).not.toHaveBeenCalled();
 });
+
+// POST
+it("function POST returns 201", async () => {
+    const userId: string = "user_1"
+    const mockInputProject = {
+        name: "project_1",
+        status: "Healthy",
+        time: "10 hours"
+    }
+    const mockProject: Project = {
+        id: "project_1",
+        name: "project_1",
+        status: "Healthy",
+        time: "10 hours",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        userId: userId,
+    }
+    mockAuth.mockResolvedValue({
+        user: {
+            id: "user_1"
+        }
+    });
+    mockCreate.mockResolvedValue(mockProject);
+    const request = new Request("http://localhost:3000/api/projects", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(mockInputProject),
+    });
+    const response = await POST(request);
+    const body = await response.json();
+    expect(response.status).toBe(201);
+    expect(body).toStrictEqual(mockProject)
+    expect(mockCreate).toHaveBeenCalledWith({
+        data: {
+            ...mockInputProject,
+            userId: userId,
+        }
+    })
+})
