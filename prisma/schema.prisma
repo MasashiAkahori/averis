@@ -17,6 +17,7 @@ model Project {
   name      String
   status    String
   time      String
+  githubUrl String?
   createdAt DateTime @default(now())
 
   userId String?

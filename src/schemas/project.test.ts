@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { CreateProjectSchema, ProjectStatusSchema } from "./project"
+import { CreateProjectSchema } from "./project"
 
 describe("CreateProjectSchema", () => {
     it("accepts valid project data", () => {

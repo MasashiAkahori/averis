@@ -39,7 +39,9 @@ it("function GET returns 200", async () => {
         name: "project_1",
         status: "Healthy",
         time: "10 hours",
+        githubUrl: "https://github.com/user/project",
         createdAt: "2026-01-01T00:00:00.000Z",
+
         userId: userId,
     };
     mockAuth.mockResolvedValue({
@@ -77,13 +79,15 @@ it("function POST returns 201", async () => {
     const mockInputProject = {
         name: "project_1",
         status: "Healthy",
-        time: "10 hours"
+        time: "10 hours",
+        githubUrl: "https://github.com/user/project"
     };
     const mockProject: Project = {
         id: "project_1",
         name: "project_1",
         status: "Healthy",
         time: "10 hours",
+        githubUrl: "https://github.com/user/project",
         createdAt: "2026-01-01T00:00:00.000Z",
         userId: userId,
     };

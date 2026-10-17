@@ -32,6 +32,7 @@ export type Project = {
     name: string
     status: ProjectStatus
     time: string
+    githubUrl: string | null
     createdAt: string
     userId: string | null
 }

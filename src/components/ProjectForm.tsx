@@ -20,19 +20,21 @@ export function ProjectForm({
     errors,
     errorMessage
 }: ProjectFormProps) {
-    const [name, setName] = useState("")
-    const [status, setStatus] = useState<ProjectStatus>("Building")
+    const [name, setName] = useState("");
+    const [status, setStatus] = useState<ProjectStatus>("Building");
+    const [githubUrl, setGithubUrl] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const nameError = errors.find(error => error.field === "name")
+    const nameError = errors.find(error => error.field === "name");
 
     useEffect(() => {
         if (editingProject) {
             setName(editingProject.name);
+            setGithubUrl(editingProject.githubUrl ?? "");
             setStatus(editingProject.status);
         } else {
-            setName("")
-            setStatus("Building")
+            setName("");
+            setGithubUrl("");
+            setStatus("Building");
         }
     }, [editingProject]);
 
@@ -51,6 +53,7 @@ export function ProjectForm({
                     name,
                     status,
                     time: "Just Now",
+                    githubUrl: githubUrl,
                     createdAt: editingProject.createdAt,
                     userId: editingProject.userId
                 })
@@ -58,16 +61,18 @@ export function ProjectForm({
                 succeeded = await onAdd({
                     name,
                     status,
-                    time: "Just Now"
+                    time: "Just Now",
+                    githubUrl: githubUrl
                 })
             }
 
             if (succeeded) {
-                setName("")
-                setStatus("Building")
+                setName("");
+                setGithubUrl("");
+                setStatus("Building");
             }
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
     }
 
@@ -96,6 +101,16 @@ export function ProjectForm({
                 {nameError && (
                     <p>{nameError.message}</p>
                 )}
+
+                <input
+                    value={githubUrl}
+                    onChange={e => {
+                        setGithubUrl(e.target.value);
+                        onClearErrors();
+                    }}
+                    placeholder="GitHub Repository URL"
+                    className="border p-2"
+                />
 
                 <select
                     value={status}
