@@ -1,5 +1,5 @@
 import { beforeEach, it, expect, vi } from "vitest";
-import { PUT } from "./route"
+import { DELETE, PUT } from "./route"
 import { Project } from "@/types/project";
 
 beforeEach(() => {
@@ -22,11 +22,16 @@ const { mockUpdate } = vi.hoisted(() => ({
     mockUpdate: vi.fn(),
 }));
 
+const { mockDelete } = vi.hoisted(() => ({
+    mockDelete: vi.fn(),
+}));
+
 vi.mock("@/lib/prisma", () => ({
     default: {
         project: {
             findFirst: mockFindFirst,
-            update: mockUpdate
+            update: mockUpdate,
+            delete: mockDelete
         }
     }
 }));
@@ -249,3 +254,131 @@ it("function PUT returns 500", async () => {
     });
 });
 
+// DELETE
+it("function DELETE returns 200", async () => {
+    const projectId = "project_1";
+    const userId = "user_1";
+    const mockProject: Project = {
+        id: projectId,
+        name: "project_1",
+        status: "Healthy",
+        time: "10 hours",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        userId: userId,
+    };
+    mockAuth.mockResolvedValue({
+        user: {
+            id: "user_1"
+        }
+    });
+    mockFindFirst.mockResolvedValue(mockProject);
+    mockDelete.mockResolvedValue(mockProject);
+    const request = new Request("http://localhost:3000/api/projects/project_1", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+    const response = await DELETE(request, {
+        params: Promise.resolve({ id: projectId })
+    });
+    const body = await response.json();
+
+    expect(mockFindFirst).toHaveBeenCalledWith({
+        where: {
+            id: projectId,
+            userId: userId
+        }
+    });
+    expect(mockDelete).toHaveBeenCalledWith({
+        where: {
+            id: projectId
+        }
+    });
+    expect(response.status).toBe(200);
+    expect(body).toStrictEqual(mockProject);
+});
+
+it("function DELETE returns 401", async () => {
+    const projectId = "project_1";
+    mockAuth.mockResolvedValue(null);
+    const request = new Request("http://localhost:3000/api/projects/project_1", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+    const response = await DELETE(request, {
+        params: Promise.resolve({ id: projectId} )
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body).toStrictEqual({
+        message: "Unauthorized"
+    });
+    expect(mockFindFirst).not.toHaveBeenCalled();
+    expect(mockDelete).not.toHaveBeenCalled();
+});
+
+it("function DELETE returns 404", async () => {
+    const projectId = "project_1";
+    mockAuth.mockResolvedValue({
+        user: {
+            id: "user_1"
+        }
+    });
+    mockFindFirst.mockResolvedValue(null);
+
+    const request = new Request("http://localhost:3000/api/projects/project_1", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+    const response = await DELETE(request, {
+        params: Promise.resolve({ id: projectId })
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body).toStrictEqual({
+        message: "Project not found"
+    });
+    expect(mockDelete).not.toHaveBeenCalled();
+});
+
+it("function DELETE returns 500", async () => {
+    const projectId = "project_1";
+    const userId = "user_1"
+    const mockProject: Project = {
+        id: projectId,
+        name: "project_1",
+        status: "Healthy",
+        time: "10 hours",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        userId: userId,
+    };
+    mockAuth.mockResolvedValue({
+        user: {
+            id: userId
+        }
+    });
+    mockFindFirst.mockResolvedValue(mockProject);
+    mockDelete.mockRejectedValue(new Error("Internal server error"));
+    const request = new Request("http://localhost:3000/api/projects/project_1", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+    const response = await DELETE(request, {
+        params: Promise.resolve({ id: projectId })
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toStrictEqual({
+        message: "Internal server error."
+    });
+});

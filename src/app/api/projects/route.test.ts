@@ -161,7 +161,7 @@ it("function POST returns 400 for invalid JSON", async () => {
     expect(mockCreate).not.toHaveBeenCalled();
 });
 
-it("function POST returns 400 for Invalid request", async () => {
+it("function POST returns 400 for invalid request", async () => {
     const mockInputProject = {
         name: "  ",
         status: "Healthy",
