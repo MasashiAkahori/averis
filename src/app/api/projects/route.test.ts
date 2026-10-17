@@ -1,4 +1,4 @@
-import { beforeEach, it, expect, vi } from "vitest"
+import { beforeEach, it, expect, vi } from "vitest";
 import { GET, POST } from "./route";
 import { Project } from "@/types/project";
 
@@ -20,7 +20,7 @@ const { mockFindMany } = vi.hoisted(() => ({
 
 const { mockCreate } = vi.hoisted(() => ({
     mockCreate: vi.fn(),
-}))
+}));
 
 vi.mock("@/lib/prisma", () => ({
     default: {
