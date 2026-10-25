@@ -45,10 +45,10 @@ export async function POST(request: Request) {
         let body;
 
         try {
-            body = await request.json()
+            body = await request.json();
         } catch {
             return Response.json(
-                { message: "Invalid JSON."},
+                { message: "Invalid JSON." },
                 { status: 400}
             );
         }
