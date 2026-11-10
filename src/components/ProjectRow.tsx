@@ -1,5 +1,6 @@
 import { Project } from "@/types/project"
 import { StatusBadge } from "./StatusBadge"
+import { GitHubRepositoryInfo } from "./GitHubRepositoryInfo"
 
 type ProjectRowProps = {
     project: Project
@@ -16,13 +17,20 @@ export function ProjectRow( { project, onDelete, onEdit }: ProjectRowProps) {
         onEdit(project)
     }
     return (
-        <div className="grid grid-cols-1 md:grid-cols-5 p-4 border-b">
-            <p>{ project.name }</p>
+        <div className="flex items-center gap-4 p-4 border-b">
+            <p className="w-32">{ project.name }</p>
             <StatusBadge status={project.status}/>
-            {/* <p>{ project.status }</p> */}
-            <p className="text-gray-500"> { project.time }</p>
-            <button className="text-gray-500" onClick={handleDelete}>Delete</button>
-            <button className="text-gray-500" onClick={handleEdit}>Edit</button>
+            <div className="flex-auto min-w-0">
+                
+                {project.githubUrl ? (
+                    <GitHubRepositoryInfo githubUrl={project.githubUrl}/>
+                ): (
+                    <p className="truncate">No Repository</p>
+                )}
+            </div>
+            {/* <p className="text-gray-500"> { project.time }</p> */}
+            <button className="text-gray-500 shrink-0" onClick={handleDelete}>Delete</button>
+            <button className="text-gray-500 shrink-0" onClick={handleEdit}>Edit</button>
         </div>
     )
 }
